@@ -1,20 +1,17 @@
-# ---- Stage 1: Build the Quasar app ----
-FROM node:18-alpine AS build
+# Usamos Nginx ligero
+FROM nginx:alpine
 
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
+# Limpiamos el contenido por defecto
+RUN rm -rf /usr/share/nginx/html/*
 
-COPY . .
-RUN npx quasar build
+# Copiamos la build de Quasar
+COPY dist/spa /usr/share/nginx/html
 
-# ---- Stage 2: Serve with nginx ----
-FROM nginx:1.25-alpine
+# Configuración opcional para rutas SPA
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built files to nginx html directory
-COPY --from=build /app/dist/spa /usr/share/nginx/html
-
-# Expose port 80
+# Exponemos el puerto
 EXPOSE 80
 
+# Arrancamos Nginx
 CMD ["nginx", "-g", "daemon off;"]
